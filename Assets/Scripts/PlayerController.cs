@@ -25,8 +25,6 @@ public class PlayerController : MonoBehaviour
 
     public CharacterController characterController;
 
-    private int count  = 0;
-
     public Transform groundChecking;
     private bool isPlayerGrounded;
     public LayerMask groundLayer;
@@ -41,9 +39,9 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-       
+    
         MovementController();
-        
+        CursorEscape();
 
     }
 
@@ -106,4 +104,17 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    void CursorEscape()//TO DO: PREVENT THE CAMERA MOVEMENT WHEN ESC IS HIT AND ADD A MENU
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Cursor.lockState = CursorLockMode.None;
+        } else if (Cursor.lockState == CursorLockMode.None)
+        {
+            if (Input.GetMouseButton(0))
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+            }
+        }
+    }
 }
