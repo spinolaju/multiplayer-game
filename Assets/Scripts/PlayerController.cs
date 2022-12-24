@@ -29,6 +29,22 @@ public class PlayerController : MonoBehaviour
     private bool isPlayerGrounded;
     public LayerMask groundLayer;
 
+
+    public GameObject bulletHole;
+
+    public float fireRate = 0.1f;
+    public float fireRateCounter;
+
+    public float magsAmmoCapacity = 30f;
+
+    public float bulletPerShot = 1f;
+
+    public float reloadDelay = 5f;
+
+    public float currentAmmo = 30f;
+
+    private bool isMagsEmpty; 
+
     // Start is called before the first frame update
     void Start()
     {
@@ -43,6 +59,15 @@ public class PlayerController : MonoBehaviour
         MovementController();
         CursorEscape();
 
+        if (!isMagsEmpty)
+        {
+            if (Input.GetMouseButtonDown(0)) HandleShoot();
+            if (Input.GetMouseButton(0)) AutomaticShoot();
+        }
+
+        if (Input.GetKeyDown(KeyCode.R) && isMagsEmpty) StartCoroutine(HandleReloadWeapon());
+
+        UIElementsRender();
     }
 
 
@@ -116,5 +141,61 @@ public class PlayerController : MonoBehaviour
                 Cursor.lockState = CursorLockMode.Locked;
             }
         }
+    }
+
+    public void HandleShoot()
+    {
+        
+       Ray ray = mCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+       ray.origin = mCamera.transform.position;
+
+        if (Physics.Raycast(ray, out RaycastHit raycastHit))
+        {
+            Debug.Log($"hit {raycastHit.collider}");
+            GameObject bh = Instantiate(bulletHole, raycastHit.point + (raycastHit.normal * 0.002f), Quaternion.LookRotation(raycastHit.normal, Vector3.up));
+            Destroy(bh, 8f);
+        }
+        fireRateCounter = fireRate;
+
+        currentAmmo -= bulletPerShot;
+
+        if (currentAmmo <= 0)
+        {
+            currentAmmo = 0;
+            isMagsEmpty = true;
+            UIController.instance.noAmmo.gameObject.SetActive(true);
+        }
+       
+
+    }
+
+    public void AutomaticShoot()
+    {
+        fireRateCounter -= Time.deltaTime;
+        if (fireRateCounter <= 0) HandleShoot();
+    }
+
+    IEnumerator HandleReloadWeapon()
+    {
+        Debug.Log("Reloading...");
+        yield return new WaitForSeconds(reloadDelay);
+        currentAmmo = magsAmmoCapacity;
+        isMagsEmpty = false;
+        Debug.Log("RELOADED");
+        UIController.instance.noAmmo.gameObject.SetActive(false);
+
+    }
+
+    public void UIElementsRender()
+    {
+        UIController.instance.currentAmmoUI.text = currentAmmo.ToString();
+        UIController.instance.SetAmmo(currentAmmo);
+
+        UIController.instance.currentAmmoUI.gameObject.SetActive(true);
+        UIController.instance.magsCapacityUI.text = magsAmmoCapacity.ToString();
+        UIController.instance.magsCapacityUI.gameObject.SetActive(true);
+
+
+       
     }
 }
