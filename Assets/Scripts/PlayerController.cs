@@ -32,20 +32,41 @@ public class PlayerController : MonoBehaviour
 
     public GameObject bulletHole;
 
-    public float fireRate = 0.1f;
+    //public float fireRate = 0.1f;
     public float fireRateCounter;
 
-    public float magsAmmoCapacity = 30f;
+   
 
-    public float bulletPerShot = 1f;
+    public int bulletPerShot = 1;
 
-    public float reloadDelay = 5f;
 
-    public float currentAmmo = 30f;
 
-    private bool isMagsEmpty; 
+    public List<int> bulletsLeft;
+    public float currentAmmoCounter;
+
+    private bool isReloading;
+
+
+    public List<WeaponInfo> weaponsList;
+    private int selectedWeaponIndex;
+
+    public WeaponInfo currentWeaponInfo;
+
+    public float muzzleDuration;
+    public float muzzleDurationCounter;
+
 
     // Start is called before the first frame update
+    void Awake()
+    {
+
+        weaponsList[1].bulletsLeft = weaponsList[1].weapon.magsAmmoCapacity;
+        weaponsList[2].bulletsLeft = weaponsList[2].weapon.magsAmmoCapacity;
+        currentWeaponInfo = weaponsList[0];
+        currentWeaponInfo.bulletsLeft = currentWeaponInfo.weapon.magsAmmoCapacity;
+
+    }
+    
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -59,15 +80,35 @@ public class PlayerController : MonoBehaviour
         MovementController();
         CursorEscape();
 
-        if (!isMagsEmpty)
+        if (currentWeaponInfo.weapon.muzzleFlash.activeInHierarchy)
         {
-            if (Input.GetMouseButtonDown(0)) HandleShoot();
-            if (Input.GetMouseButton(0)) AutomaticShoot();
+            muzzleDurationCounter -= Time.deltaTime;
+            if(muzzleDurationCounter <=0) currentWeaponInfo.weapon.muzzleFlash.SetActive(false);
+
         }
 
-        if (Input.GetKeyDown(KeyCode.R) && isMagsEmpty) StartCoroutine(HandleReloadWeapon());
+        
+
+        if (!currentWeaponInfo.isMagEmpty)
+        {
+            if (Input.GetMouseButtonDown(0)) HandleShoot();
+            if (Input.GetMouseButton(0) && currentWeaponInfo.weapon.isAutomatic) AutomaticShoot();
+            UIController.instance.noAmmo.gameObject.SetActive(false);
+        }
+
+        if (currentWeaponInfo.bulletsLeft <= 0)
+        {
+            currentWeaponInfo.bulletsLeft = 0;
+            currentWeaponInfo.isMagEmpty = true;
+            UIController.instance.noAmmo.gameObject.SetActive(true);
+        }
+
+        if (Input.GetKeyDown(KeyCode.R) && currentWeaponInfo.isMagEmpty) StartCoroutine(HandleReloadWeapon());
 
         UIElementsRender();
+
+        SwitchWeapons();
+        RenderSelectedWeapon();
     }
 
 
@@ -155,14 +196,18 @@ public class PlayerController : MonoBehaviour
             GameObject bh = Instantiate(bulletHole, raycastHit.point + (raycastHit.normal * 0.002f), Quaternion.LookRotation(raycastHit.normal, Vector3.up));
             Destroy(bh, 8f);
         }
-        fireRateCounter = fireRate;
+        fireRateCounter = currentWeaponInfo.weapon.fireRate;
 
-        currentAmmo -= bulletPerShot;
+        currentWeaponInfo.bulletsLeft -= bulletPerShot;
 
-        if (currentAmmo <= 0)
+        currentWeaponInfo.weapon.muzzleFlash.SetActive(true);
+
+        muzzleDurationCounter = muzzleDuration;
+
+        if (currentWeaponInfo.bulletsLeft <= 0)
         {
-            currentAmmo = 0;
-            isMagsEmpty = true;
+            currentWeaponInfo.bulletsLeft = 0;
+            currentWeaponInfo.isMagEmpty = true;
             UIController.instance.noAmmo.gameObject.SetActive(true);
         }
        
@@ -178,24 +223,72 @@ public class PlayerController : MonoBehaviour
     IEnumerator HandleReloadWeapon()
     {
         Debug.Log("Reloading...");
-        yield return new WaitForSeconds(reloadDelay);
-        currentAmmo = magsAmmoCapacity;
-        isMagsEmpty = false;
+        isReloading = true;
+        yield return new WaitForSeconds(currentWeaponInfo.weapon.reloadDelay);
+        currentWeaponInfo.bulletsLeft = currentWeaponInfo.weapon.magsAmmoCapacity;
+        currentWeaponInfo.isMagEmpty = false;
         Debug.Log("RELOADED");
         UIController.instance.noAmmo.gameObject.SetActive(false);
+        isReloading = false;
 
     }
 
     public void UIElementsRender()
     {
-        UIController.instance.currentAmmoUI.text = currentAmmo.ToString();
-        UIController.instance.SetAmmo(currentAmmo);
 
         UIController.instance.currentAmmoUI.gameObject.SetActive(true);
-        UIController.instance.magsCapacityUI.text = magsAmmoCapacity.ToString();
+        currentWeaponInfo.weapon.weaponImg.SetActive(true);
+        UIController.instance.currentAmmoUI.text = currentWeaponInfo.bulletsLeft.ToString();
+        UIController.instance.magsCapacityUI.text = currentWeaponInfo.weapon.magsAmmoCapacity.ToString();
+        UIController.instance.magsCapacityUI.gameObject.SetActive(true);
+        
+        UIController.instance.SetAmmo(currentWeaponInfo.bulletsLeft, currentWeaponInfo.weapon.magsAmmoCapacity);
+
         UIController.instance.magsCapacityUI.gameObject.SetActive(true);
 
 
        
     }
+
+    public void SwitchWeapons()
+    {
+        
+        if (isReloading) return;
+        currentWeaponInfo.weapon.muzzleFlash.SetActive(false);
+        int nextIndex = selectedWeaponIndex;
+
+        if(Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
+        {
+            nextIndex++;
+            if (nextIndex >= weaponsList.Count) nextIndex = 0;
+
+        } else if (Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
+        {
+            nextIndex--;
+            if (nextIndex < 0) nextIndex = weaponsList.Count - 1;
+        }
+        currentWeaponInfo = weaponsList[nextIndex];
+        
+        selectedWeaponIndex = nextIndex;
+    }
+
+    public void RenderSelectedWeapon()
+    {
+        foreach (WeaponInfo w in weaponsList) w.weapon.gameObject.SetActive(false);
+
+        foreach (WeaponInfo w in weaponsList) w.weapon.weaponImg.gameObject.SetActive(false);
+
+        currentWeaponInfo.weapon.gameObject.SetActive(true);
+        currentWeaponInfo.weapon.weaponImg.SetActive(true);
+        Debug.Log(currentWeaponInfo);
+    }
+}
+
+[System.Serializable]
+public class WeaponInfo
+{
+    [SerializeField]
+    public Weapon weapon;
+    public int bulletsLeft;
+    public bool isMagEmpty;
 }

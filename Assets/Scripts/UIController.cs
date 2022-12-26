@@ -33,8 +33,11 @@ public class UIController : MonoBehaviour
         
     }
 
-    public void SetAmmo(float currentAmmo)
+    public void SetAmmo(float currentAmmo, float maxCapacity)
     {
         ammoBar.value = currentAmmo;
+        ammoBar.maxValue = maxCapacity;
+
+    
     }
 }
