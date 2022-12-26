@@ -71,6 +71,12 @@ public class PlayerController : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         mCamera = Camera.main;
+
+        Transform spawnPoint = SpawnManager.instance.GetSpawnPoint();
+
+        transform.position = spawnPoint.position;
+        transform.rotation = spawnPoint.rotation;
+
     }
 
     // Update is called once per frame
