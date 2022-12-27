@@ -85,20 +85,19 @@ public class PlayerController : MonoBehaviour
     
         MovementController();
         CursorEscape();
-
-        if (currentWeaponInfo.weapon.muzzleFlash.activeInHierarchy)
+        /*if (currentWeaponInfo.weapon.muzzleFlash.isPlaying)
         {
-            muzzleDurationCounter -= Time.deltaTime;
-            if(muzzleDurationCounter <=0) currentWeaponInfo.weapon.muzzleFlash.SetActive(false);
+           
 
-        }
+        } */
+       
 
-        
 
         if (!currentWeaponInfo.isMagEmpty)
         {
             if (Input.GetMouseButtonDown(0)) HandleShoot();
             if (Input.GetMouseButton(0) && currentWeaponInfo.weapon.isAutomatic) AutomaticShoot();
+            UIController.instance.noAmmo.gameObject.SetActive(false);
             UIController.instance.noAmmo.gameObject.SetActive(false);
         }
 
@@ -114,7 +113,15 @@ public class PlayerController : MonoBehaviour
         UIElementsRender();
 
         SwitchWeapons();
+        SwitchWeaponsByNum();
+
         RenderSelectedWeapon();
+
+        if (currentWeaponInfo.weapon.muzzleFlash.isPlaying)
+        {
+            muzzleDurationCounter -= Time.deltaTime;
+            if (muzzleDurationCounter <= 0) currentWeaponInfo.weapon.muzzleFlash.Stop();
+        }
     }
 
 
@@ -196,6 +203,10 @@ public class PlayerController : MonoBehaviour
        Ray ray = mCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
        ray.origin = mCamera.transform.position;
 
+        //currentWeaponInfo.weapon.muzzleFlash.Play();
+
+        
+
         if (Physics.Raycast(ray, out RaycastHit raycastHit))
         {
             Debug.Log($"hit {raycastHit.collider}");
@@ -206,8 +217,14 @@ public class PlayerController : MonoBehaviour
 
         currentWeaponInfo.bulletsLeft -= bulletPerShot;
 
-        currentWeaponInfo.weapon.muzzleFlash.SetActive(true);
 
+
+        //currentWeaponInfo.weapon.muzzleFlash.SetActive(true);
+
+        if (!currentWeaponInfo.weapon.muzzleFlash.isPlaying)
+        {
+            currentWeaponInfo.weapon.muzzleFlash.Play();
+        }
         muzzleDurationCounter = muzzleDuration;
 
         if (currentWeaponInfo.bulletsLeft <= 0)
@@ -260,10 +277,12 @@ public class PlayerController : MonoBehaviour
     {
         
         if (isReloading) return;
-        currentWeaponInfo.weapon.muzzleFlash.SetActive(false);
+
+        //currentWeaponInfo.weapon.muzzleFlash.SetActive(false);
+        //currentWeaponInfo.weapon.muzzleFlash.Stop();
         int nextIndex = selectedWeaponIndex;
 
-        if(Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
+        if(Input.GetAxisRaw("Mouse ScrollWheel") > 0f )
         {
             nextIndex++;
             if (nextIndex >= weaponsList.Count) nextIndex = 0;
@@ -274,8 +293,22 @@ public class PlayerController : MonoBehaviour
             if (nextIndex < 0) nextIndex = weaponsList.Count - 1;
         }
         currentWeaponInfo = weaponsList[nextIndex];
-        
         selectedWeaponIndex = nextIndex;
+       // RenderSelectedWeapon();
+    }
+
+    public void SwitchWeaponsByNum()
+    {
+        for(int i = 0; i < weaponsList.Count; i++ )
+        {
+            if(Input.GetKeyDown((i+1).ToString()))
+            {
+                selectedWeaponIndex = i;
+                currentWeaponInfo = weaponsList[i];
+                RenderSelectedWeapon();
+
+            }
+        }
     }
 
     public void RenderSelectedWeapon()
@@ -286,7 +319,7 @@ public class PlayerController : MonoBehaviour
 
         currentWeaponInfo.weapon.gameObject.SetActive(true);
         currentWeaponInfo.weapon.weaponImg.SetActive(true);
-        Debug.Log(currentWeaponInfo);
+        
     }
 }
 
