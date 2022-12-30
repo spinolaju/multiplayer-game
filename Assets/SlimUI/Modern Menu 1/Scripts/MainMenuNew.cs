@@ -50,6 +50,10 @@ namespace SlimUI.ModernMenu{
 		public GameObject createRoomCanvas;
 		public TMP_InputField roomNameInput;
 
+		[Header("Setting Nickname")]
+		public GameObject nicknameCanvas;
+		public TMP_InputField nicknameInput;
+
 		[Header("Room Overview")]
 		public GameObject roomOverviewCanvas;
 		public TMP_Text roomName;
@@ -319,6 +323,7 @@ namespace SlimUI.ModernMenu{
 			errorDialog.SetActive(false);
 			findRoomCanvas.SetActive(false);
 			settingsCanvas.SetActive(false);
+			nicknameCanvas.SetActive(false);
 
 
 		}
@@ -346,6 +351,13 @@ namespace SlimUI.ModernMenu{
 			CloseMenus();
 			Launcher.instance.FindRoom();
 		}
+
+		public void SettingNickname()
+		{
+			
+			Launcher.instance.SetNickname();
+		}
+
 
 		IEnumerator LoadAsynchronously(string sceneName){ // scene name is just the name of the current scene being loaded
 			AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);

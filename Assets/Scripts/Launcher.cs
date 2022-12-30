@@ -19,6 +19,7 @@ public class Launcher : MonoBehaviourPunCallbacks
 
     private List<RoomInformation> roomBtnList = new List<RoomInformation>();
     private List<TMP_Text> playersList = new List<TMP_Text>();
+    private bool hasSetNickname;
     // Start is called before the first frame update
     void Start()
     {
@@ -58,7 +59,23 @@ public class Launcher : MonoBehaviourPunCallbacks
     public override void OnJoinedLobby()
     {
         MainMenuNew.instance.CloseMenus();
+
+        if (!hasSetNickname)
+        {
+            MainMenuNew.instance.CloseMenus();
+            MainMenuNew.instance.Position2();
+            MainMenuNew.instance.nicknameCanvas.SetActive(true);
+
+            if(PlayerPrefs.HasKey("playerNickname"))
+            {
+                MainMenuNew.instance.nicknameInput.text = PlayerPrefs.GetString("playerNickname");
+            }
+        }
+        else PhotonNetwork.NickName = PlayerPrefs.GetString("playerNickname");
+
         MainMenuNew.instance.firstMenu.SetActive(true);
+
+
     }
 
     private void ListPlayers()
@@ -93,7 +110,7 @@ public class Launcher : MonoBehaviourPunCallbacks
 
         MainMenuNew.instance.roomName.text = $"{PhotonNetwork.CurrentRoom.Name} room list:";
 
-        PhotonNetwork.NickName = Random.Range(0, 1000).ToString();
+        
         ListPlayers();
         
     }
@@ -153,12 +170,13 @@ public class Launcher : MonoBehaviourPunCallbacks
 
         for (int i=0; i < roomList.Count; i++)
         {
+
             if (roomList[i].PlayerCount != roomList[i].MaxPlayers && !roomList[i].RemovedFromList)
             {
                 RoomInformation rBtn = Instantiate(MainMenuNew.instance.roomInfoBtn, MainMenuNew.instance.roomInfoBtn.transform.parent);
                 rBtn.PopulateRoomInfo(roomList[i]);
                 rBtn.gameObject.SetActive(true);
-
+                Debug.Log(rBtn.btnNameText.text);
                 roomBtnList.Add(rBtn);
             }
            
@@ -175,5 +193,22 @@ public class Launcher : MonoBehaviourPunCallbacks
         MainMenuNew.instance.loadingMenu.SetActive(true);
 
 
+    }
+
+    public void SetNickname()
+    {
+        if (!string.IsNullOrEmpty(MainMenuNew.instance.nicknameInput.text))
+        {
+
+            //string tag = Random.Range(1000, 9999).ToString();
+            PhotonNetwork.NickName = $"{MainMenuNew.instance.nicknameInput.text}";
+            PlayerPrefs.SetString("playerNickname", $"{MainMenuNew.instance.nicknameInput.text}");
+            MainMenuNew.instance.CloseMenus();
+
+            MainMenuNew.instance.Position1();
+            MainMenuNew.instance.firstMenu.SetActive(true);
+
+            hasSetNickname = true;
+        }
     }
 }

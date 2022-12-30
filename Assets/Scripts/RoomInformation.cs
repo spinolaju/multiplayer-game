@@ -7,7 +7,8 @@ using Photon.Realtime;
 public class RoomInformation : MonoBehaviour
 {
     public static RoomInformation instance;
-    public TMP_Text btnText;
+    public TMP_Text btnNameText;
+    public TMP_Text btnPlayersNoText;
     private RoomInfo roomInfo;
 
     private void Awake()
@@ -19,7 +20,8 @@ public class RoomInformation : MonoBehaviour
     public void PopulateRoomInfo(RoomInfo info)
     {
         roomInfo = info;
-        btnText.text = $"{roomInfo.Name} - {roomInfo.PlayerCount}/{roomInfo.MaxPlayers}";
+        btnNameText.text = $"{roomInfo.Name}";
+        btnPlayersNoText.text = $"{roomInfo.PlayerCount}/{roomInfo.MaxPlayers}";
     }
 
     public void OpenRoom()
