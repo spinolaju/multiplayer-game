@@ -53,16 +53,22 @@ namespace SlimUI.ModernMenu{
 		[Header("Room Overview")]
 		public GameObject roomOverviewCanvas;
 		public TMP_Text roomName;
+		public TMP_Text playerName;
 
 
+		[Header("Find Room")]
+		public GameObject findRoomCanvas;
+		public RoomInformation roomInfoBtn;
+
+
+		[Header("Settings")]
 		public GameObject settingsCanvas;
 
 		[Header("Error Popup")]
 		public GameObject errorDialog;
 		public TMP_Text errorText;
 
-
-
+	
 
 		[Header("SFX")]
 		[Tooltip("The GameObject holding the Audio Source component for the HOVER SOUND")]
@@ -152,10 +158,10 @@ namespace SlimUI.ModernMenu{
 
 		public void ReturnMenu(){
 			playMenu.SetActive(false);
-			createRoomCanvas.SetActive(false);
+			CloseMenus();
 			if (extrasMenu) extrasMenu.SetActive(false);
 			exitMenu.SetActive(false);
-			mainMenu.SetActive(true);
+			firstMenu.SetActive(true);
 		}
 /*
 		public void NewGame(string){
@@ -300,7 +306,7 @@ namespace SlimUI.ModernMenu{
 
 		public void CreatingRoom()
         {
-
+			CloseMenus();
 			Launcher.instance.CreateRoom();
 		}
 
@@ -311,6 +317,15 @@ namespace SlimUI.ModernMenu{
 			createRoomCanvas.SetActive(false);
 			roomOverviewCanvas.SetActive(false);
 			errorDialog.SetActive(false);
+			findRoomCanvas.SetActive(false);
+			settingsCanvas.SetActive(false);
+
+
+		}
+
+		public void JoiningRoomByBrowsing()
+        {
+			RoomInformation.instance.OpenRoom();
 
 		}
 
@@ -324,6 +339,12 @@ namespace SlimUI.ModernMenu{
 		{
 			CloseMenus();
 			Launcher.instance.LeaveRoom();
+		}
+
+		public void FindingRoom()
+		{
+			CloseMenus();
+			Launcher.instance.FindRoom();
 		}
 
 		IEnumerator LoadAsynchronously(string sceneName){ // scene name is just the name of the current scene being loaded
