@@ -20,6 +20,7 @@ public class Launcher : MonoBehaviourPunCallbacks
     private List<RoomInformation> roomBtnList = new List<RoomInformation>();
     private List<TMP_Text> playersList = new List<TMP_Text>();
     private bool hasSetNickname;
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -30,6 +31,9 @@ public class Launcher : MonoBehaviourPunCallbacks
         PhotonNetwork.ConnectUsingSettings();
 
         Debug.Log(PhotonNetwork.NetworkClientState);
+
+
+
     }
 
     public void CreateRoom()
@@ -54,6 +58,8 @@ public class Launcher : MonoBehaviourPunCallbacks
     public override void OnConnectedToMaster()
     {
         PhotonNetwork.JoinLobby();
+
+        PhotonNetwork.AutomaticallySyncScene = true;
         MainMenuNew.instance.loadingText.text = "Joining Lobby...";
     }
     public override void OnJoinedLobby()
@@ -66,7 +72,7 @@ public class Launcher : MonoBehaviourPunCallbacks
             MainMenuNew.instance.Position2();
             MainMenuNew.instance.nicknameCanvas.SetActive(true);
 
-            if(PlayerPrefs.HasKey("playerNickname"))
+            if (PlayerPrefs.HasKey("playerNickname"))
             {
                 MainMenuNew.instance.nicknameInput.text = PlayerPrefs.GetString("playerNickname");
             }
@@ -107,12 +113,17 @@ public class Launcher : MonoBehaviourPunCallbacks
     {
         MainMenuNew.instance.CloseMenus();
         MainMenuNew.instance.roomOverviewCanvas.SetActive(true);
+        MainMenuNew.instance.Position2();
+        
 
         MainMenuNew.instance.roomName.text = $"{PhotonNetwork.CurrentRoom.Name} room list:";
 
         
         ListPlayers();
-        
+
+        if (PhotonNetwork.IsMasterClient) MainMenuNew.instance.startMatchBtn.SetActive(true);
+        else MainMenuNew.instance.startMatchBtn.SetActive(false);
+
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
@@ -210,5 +221,28 @@ public class Launcher : MonoBehaviourPunCallbacks
 
             hasSetNickname = true;
         }
+    }
+
+    public void StartGame()
+    {
+        PhotonNetwork.LoadLevel(MainMenuNew.instance.sceneToPlay);
+        MainMenuNew.instance.loadBar.value = PhotonNetwork.LevelLoadingProgress / .9f;
+
+        
+    }
+
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        if (PhotonNetwork.IsMasterClient) MainMenuNew.instance.startMatchBtn.SetActive(true);
+        else MainMenuNew.instance.startMatchBtn.SetActive(false);
+    }
+
+    public void TestRoomQuickJoin()
+    {
+        PhotonNetwork.CreateRoom("Test");
+        
+        MainMenuNew.instance.loadingText.text = "Creating test room";
+        MainMenuNew.instance.loadingMenu.SetActive(true);
+
     }
 }

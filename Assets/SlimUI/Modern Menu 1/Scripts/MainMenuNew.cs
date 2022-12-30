@@ -58,6 +58,7 @@ namespace SlimUI.ModernMenu{
 		public GameObject roomOverviewCanvas;
 		public TMP_Text roomName;
 		public TMP_Text playerName;
+		public GameObject startMatchBtn;
 
 
 		[Header("Find Room")]
@@ -119,6 +120,10 @@ namespace SlimUI.ModernMenu{
 		public TMP_Text finishedLoadingText;
 		public bool requireInputForNextScene = false;
 
+		public string sceneToPlay;
+
+		public GameObject testRoomBtn;
+
 		void Start(){
 			CameraObject = transform.GetComponent<Animator>();
 
@@ -127,7 +132,9 @@ namespace SlimUI.ModernMenu{
 			if(extrasMenu) extrasMenu.SetActive(false);
 			firstMenu.SetActive(true);
 			mainMenu.SetActive(true); */
-
+#if UNITY_EDITOR
+			testRoomBtn.SetActive(true);
+#endif
 			SetThemeColors();
 		}
 
@@ -167,13 +174,11 @@ namespace SlimUI.ModernMenu{
 			exitMenu.SetActive(false);
 			firstMenu.SetActive(true);
 		}
-/*
-		public void NewGame(string){
-			if(sceneName != ""){
-				StartCoroutine(LoadAsynchronously(sceneName));
-			}
+
+		public void StartMatch(){
+			Launcher.instance.StartGame();
 		}
-*/
+
 		public void LoadScene(string scene){
 			if(scene != ""){
 				StartCoroutine(LoadAsynchronously(scene));
@@ -358,8 +363,13 @@ namespace SlimUI.ModernMenu{
 			Launcher.instance.SetNickname();
 		}
 
+		public void QuickJoin()
+        {
+			MainMenuNew.instance.CloseMenus();
+			Launcher.instance.TestRoomQuickJoin();
+		}
 
-		IEnumerator LoadAsynchronously(string sceneName){ // scene name is just the name of the current scene being loaded
+		public IEnumerator LoadAsynchronously(string sceneName){ // scene name is just the name of the current scene being loaded
 			AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
 			operation.allowSceneActivation = false;
 			mainCanvas.SetActive(false);
