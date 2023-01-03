@@ -18,6 +18,11 @@ public class UIController : MonoBehaviour
     public TMP_Text magsCapacityUI;
     public TMP_Text noAmmo;
     public Slider ammoBar;
+    public GameObject[] weaponImage;
+    public GameObject currentImg;
+
+    public GameObject deathPanel;
+    public TMP_Text deathText;
 
 
     // Start is called before the first frame update
@@ -39,5 +44,10 @@ public class UIController : MonoBehaviour
         ammoBar.maxValue = maxCapacity;
 
     
+    }
+
+    public void SetWeaponIMG(int selectedWeapon)
+    {
+        currentImg = weaponImage[selectedWeapon];
     }
 }

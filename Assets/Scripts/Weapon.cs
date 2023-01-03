@@ -9,5 +9,5 @@ public class Weapon : MonoBehaviour
     public int magsAmmoCapacity = 30;
     public float reloadDelay = 5f;
     public ParticleSystem muzzleFlash;
-    public GameObject weaponImg;
+    
 }

@@ -120,6 +120,8 @@ namespace SlimUI.ModernMenu{
 		public TMP_Text finishedLoadingText;
 		public bool requireInputForNextScene = false;
 
+		public GameObject background;
+
 		public string sceneToPlay;
 
 		public GameObject testRoomBtn;

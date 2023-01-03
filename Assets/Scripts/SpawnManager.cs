@@ -30,9 +30,10 @@ public class SpawnManager : MonoBehaviour
         
     }
 
-    public Transform GetSpawnPoint()
+    public Transform GetSpawnPoint(int actorNo)
     {
+        if (actorNo >= spawnPoints.Length) actorNo = spawnPoints.Length - 1;
         
-        return spawnPoints[Random.Range(0, spawnPoints.Length)];
+        return spawnPoints[actorNo];
     }
 }

@@ -25,6 +25,7 @@ public class Launcher : MonoBehaviourPunCallbacks
     void Start()
     {
         MainMenuNew.instance.CloseMenus();
+        MainMenuNew.instance.background.SetActive(false);
         MainMenuNew.instance.loadingMenu.SetActive(true);
         MainMenuNew.instance.loadingText.text = "Connecting...";
 
@@ -79,6 +80,7 @@ public class Launcher : MonoBehaviourPunCallbacks
         }
         else PhotonNetwork.NickName = PlayerPrefs.GetString("playerNickname");
 
+        MainMenuNew.instance.background.SetActive(true);
         MainMenuNew.instance.firstMenu.SetActive(true);
 
 
@@ -153,6 +155,7 @@ public class Launcher : MonoBehaviourPunCallbacks
         PhotonNetwork.LeaveRoom();
         MainMenuNew.instance.loadingText.text = "Leaving Room...";
         MainMenuNew.instance.loadingMenu.SetActive(true);
+        MainMenuNew.instance.background.SetActive(false);
     }
 
     public void FindRoom()
@@ -165,6 +168,7 @@ public class Launcher : MonoBehaviourPunCallbacks
     public override void OnLeftRoom()
     {
         MainMenuNew.instance.CloseMenus();
+        MainMenuNew.instance.background.SetActive(true);
         MainMenuNew.instance.firstMenu.SetActive(true);
 
     }
@@ -202,6 +206,7 @@ public class Launcher : MonoBehaviourPunCallbacks
 
         MainMenuNew.instance.loadingText.text = "Joining Room...";
         MainMenuNew.instance.loadingMenu.SetActive(true);
+        MainMenuNew.instance.background.SetActive(false);
 
 
     }
@@ -218,6 +223,7 @@ public class Launcher : MonoBehaviourPunCallbacks
 
             MainMenuNew.instance.Position1();
             MainMenuNew.instance.firstMenu.SetActive(true);
+            MainMenuNew.instance.background.SetActive(true);
 
             hasSetNickname = true;
         }

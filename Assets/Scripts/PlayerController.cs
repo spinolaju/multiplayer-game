@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviourPunCallbacks
 {
 
     public Transform viewPoint;
@@ -55,6 +56,8 @@ public class PlayerController : MonoBehaviour
     public float muzzleDuration;
     public float muzzleDurationCounter;
 
+    public GameObject playerImpact;
+
 
     // Start is called before the first frame update
     void Awake()
@@ -71,25 +74,18 @@ public class PlayerController : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         mCamera = Camera.main;
-
-        Transform spawnPoint = SpawnManager.instance.GetSpawnPoint();
-
-        transform.position = spawnPoint.position;
-        transform.rotation = spawnPoint.rotation;
+        UIController.instance.SetWeaponIMG(0);
 
     }
 
     // Update is called once per frame
     void Update()
     {
-    
-        MovementController();
+        if (photonView.IsMine)
+        { 
+            MovementController();
         CursorEscape();
-        /*if (currentWeaponInfo.weapon.muzzleFlash.isPlaying)
-        {
-           
-
-        } */
+    
        
 
 
@@ -110,17 +106,22 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.R) && currentWeaponInfo.isMagEmpty) StartCoroutine(HandleReloadWeapon());
 
-        UIElementsRender();
+        
 
         SwitchWeapons();
         SwitchWeaponsByNum();
 
         RenderSelectedWeapon();
 
+        
+
         if (currentWeaponInfo.weapon.muzzleFlash.isPlaying)
         {
             muzzleDurationCounter -= Time.deltaTime;
             if (muzzleDurationCounter <= 0) currentWeaponInfo.weapon.muzzleFlash.Stop();
+        }
+
+        UIElementsRender();
         }
     }
 
@@ -173,8 +174,12 @@ public class PlayerController : MonoBehaviour
 
     private void LateUpdate()
     {
-        mCamera.transform.position = viewPoint.position;
-        mCamera.transform.rotation = viewPoint.rotation;
+        if (photonView.IsMine)
+        {
+            mCamera.transform.position = viewPoint.position;
+            mCamera.transform.rotation = viewPoint.rotation;
+        }
+        
     }
     
     void Jump()
@@ -203,15 +208,24 @@ public class PlayerController : MonoBehaviour
        Ray ray = mCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
        ray.origin = mCamera.transform.position;
 
-        //currentWeaponInfo.weapon.muzzleFlash.Play();
-
         
 
         if (Physics.Raycast(ray, out RaycastHit raycastHit))
         {
-            Debug.Log($"hit {raycastHit.collider}");
-            GameObject bh = Instantiate(bulletHole, raycastHit.point + (raycastHit.normal * 0.002f), Quaternion.LookRotation(raycastHit.normal, Vector3.up));
-            Destroy(bh, 8f);
+            
+            if(raycastHit.collider.gameObject.tag == "Player")
+            {
+                Debug.Log($"hit {raycastHit.collider.gameObject.GetPhotonView().Owner.NickName}");
+                PhotonNetwork.Instantiate(playerImpact.name, raycastHit.point, Quaternion.identity);
+
+                raycastHit.collider.gameObject.GetPhotonView().RPC("DealingDamage", RpcTarget.All, photonView.Owner.NickName);
+            }
+            else
+            {
+                GameObject bh = Instantiate(bulletHole, raycastHit.point + (raycastHit.normal * 0.002f), Quaternion.LookRotation(raycastHit.normal, Vector3.up));
+                Destroy(bh, 8f);
+            }
+            
         }
         fireRateCounter = currentWeaponInfo.weapon.fireRate;
 
@@ -235,6 +249,23 @@ public class PlayerController : MonoBehaviour
         }
        
 
+    }
+    [PunRPC]
+
+    public void DealingDamage(string shooter )
+    {
+        TakingDamage(shooter);
+    }
+
+    public void TakingDamage(string shooter)
+    {
+        if (photonView.IsMine)
+        {
+            Debug.Log($"{photonView.Owner.NickName} been hit by {shooter}");
+            PlayerSpawner.instance.Die(shooter);
+            
+        }
+        
     }
 
     public void AutomaticShoot()
@@ -260,7 +291,7 @@ public class PlayerController : MonoBehaviour
     {
 
         UIController.instance.currentAmmoUI.gameObject.SetActive(true);
-        currentWeaponInfo.weapon.weaponImg.SetActive(true);
+        UIController.instance.currentImg.SetActive(true);
         UIController.instance.currentAmmoUI.text = currentWeaponInfo.bulletsLeft.ToString();
         UIController.instance.magsCapacityUI.text = currentWeaponInfo.weapon.magsAmmoCapacity.ToString();
         UIController.instance.magsCapacityUI.gameObject.SetActive(true);
@@ -278,6 +309,7 @@ public class PlayerController : MonoBehaviour
         
         if (isReloading) return;
 
+        UIController.instance.currentImg.SetActive(false);
         //currentWeaponInfo.weapon.muzzleFlash.SetActive(false);
         //currentWeaponInfo.weapon.muzzleFlash.Stop();
         int nextIndex = selectedWeaponIndex;
@@ -294,7 +326,8 @@ public class PlayerController : MonoBehaviour
         }
         currentWeaponInfo = weaponsList[nextIndex];
         selectedWeaponIndex = nextIndex;
-       // RenderSelectedWeapon();
+        
+        RenderSelectedWeapon();
     }
 
     public void SwitchWeaponsByNum()
@@ -315,10 +348,11 @@ public class PlayerController : MonoBehaviour
     {
         foreach (WeaponInfo w in weaponsList) w.weapon.gameObject.SetActive(false);
 
-        foreach (WeaponInfo w in weaponsList) w.weapon.weaponImg.gameObject.SetActive(false);
+        UIController.instance.currentImg.SetActive(false);
 
         currentWeaponInfo.weapon.gameObject.SetActive(true);
-        currentWeaponInfo.weapon.weaponImg.SetActive(true);
+        UIController.instance.SetWeaponIMG(selectedWeaponIndex);
+        UIController.instance.currentImg.SetActive(true);
         
     }
 }
